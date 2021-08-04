@@ -7,6 +7,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use TodoBundle\Entity\Todo;
 
 class DefaultController extends Controller
@@ -18,9 +19,21 @@ class DefaultController extends Controller
     public function listAction()
     {
         $list = $this->getDoctrine()->getRepository('TodoBundle:Todo')->findAll();
+
+        foreach($list as $e)
+        {                   
+            $name = $e->getNombre();
+            $color = $e->getFechaCreacion()->format('d/m/Y');
+
+            $result[] = array("id" => $e->getId(), 
+                            "nombre" => $e->getNombre(), 
+                            "fecha_creacion" => $e->getFechaCreacion()->format('d/m/Y'), 
+                            "fecha_tope" => $e->getFechaTope()->format('d/m/Y'), 
+                            "estado" => $e->getEstado());
+        }
         // replace this example code with whatever you need
         return $this->render('@Todo/Default/index.html.twig', [
-            'result' => $list
+            'result' => $result
         ]);
        
     }
@@ -45,4 +58,61 @@ class DefaultController extends Controller
 
         return $this->redirectToRoute('todo_list');
     }
+
+    /**
+     * @Route("/change/{id}", name="todo_change")
+     * @Method("PUT")
+     */
+    public function changeAction($id) {
+        $em = $this->getDoctrine()->getManager();
+
+        $update = $this->getDoctrine()->getRepository('TodoBundle:Todo')->find($id);
+        $update->setEstado(!$update->getEstado());
+
+        $em->flush();
+
+        $list = $this->getDoctrine()->getRepository('TodoBundle:Todo')->findAll();
+        $result = array();
+        foreach($list as $e)
+        {                   
+            $name = $e->getNombre();
+            $color = $e->getFechaCreacion()->format('d/m/Y');
+
+            $result[] = array("id" => $e->getId(), 
+                            "nombre" => $e->getNombre(), 
+                            "fecha_creacion" => $e->getFechaCreacion()->format('d/m/Y'), 
+                            "fecha_tope" => $e->getFechaTope()->format('d/m/Y'), 
+                            "estado" => $e->getEstado());
+        }
+ 
+        return new Response(json_encode($result));
+    }
+
+    /**
+     * @Route("/remove/{id}", name="todo_remove")
+     * @Method("DELETE")
+     */
+    public function removeAction($id) { 
+
+        $em = $this->getDoctrine()->getManager();
+        $delete = $this->getDoctrine()->getRepository('TodoBundle:Todo')->find($id);
+        $em->remove($delete);
+        $em->flush();
+        $list = $this->getDoctrine()->getRepository('TodoBundle:Todo')->findAll();
+        $result = array();
+        foreach($list as $e)
+        {                   
+            $name = $e->getNombre();
+            $color = $e->getFechaCreacion()->format('d/m/Y');
+
+            $result[] = array("id" => $e->getId(), 
+                            "nombre" => $e->getNombre(), 
+                            "fecha_creacion" => $e->getFechaCreacion()->format('d/m/Y'), 
+                            "fecha_tope" => $e->getFechaTope()->format('d/m/Y'), 
+                            "estado" => $e->getEstado());
+        }
+ 
+        return new Response(json_encode($result));
+    }
+
 }
