@@ -29,6 +29,10 @@
         #add {
             margin-bottom: 10px;
         }
+
+        .bg-success{
+            background-color: green;
+        }
     </style>
 {% endblock %}
 
@@ -81,7 +85,7 @@
                     </div>
                 </div>    
             </form>
-            <table id="table" class="display nowrap" style="width:100%">
+            <table id="table" class="display nowrap" style="width:100%">         
                 <thead>
                     <tr>
                         <th>Id</th>
@@ -89,24 +93,9 @@
                         <th>Fecha de creación</th>
                         <th>Fecha tope</th>
                         <th>Estado</th>
-                        <th>Acción</th>
+                        <th>Accion</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for item in result %}
-                        <tr>
-                            <td> {{item.id}} </td>
-                            <td> {{item.nombre}} </td>
-                            <td> {{item.fechaCreacion|date("d/m/Y") }} </td>
-                            <td> {{item.fechaTope|date("d/m/Y") }} </td>
-                            <td> {{item.estado == false ? 'Sin hacer' : 'Hecho' }} </td>
-                            <td>   
-                                <button type="button">Hecho</button>  
-                                <button type="button">Eliminar</button> 
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
             </table>
            
         </div>
@@ -117,19 +106,56 @@
     <script>
         $( document ).ready(function() {
      
-            $('#table').DataTable( {
+            var table = $('#table').DataTable( {
+                data: eval('{{ result|json_encode|raw }}'),
+                columns: [
+                    { data: 'id' },
+                    { data: 'nombre' },
+                    { data: 'fecha_creacion' },
+                    { data: 'fecha_tope' },
+                    { data: 'estado' },
+                    {
+                      
+                        "data": null,
+                        "render": function(data, type, full, meta)
+                        {
+                            var buttons = '';
+                            if (data.estado == true) {
+
+                                buttons = '<button class="change"> Deshacer </button>';
+                            }else {
+                                buttons = '<button class="change"> Finalizar </button>';
+                            }
+                            return buttons + ' <button class="remove"> Eliminar </button>'
+                        }
+                    }
+                ],
                 "columnDefs": [
                     {
                         "className": "dt-center", 
-                        "targets": "_all"},
+                        "targets": "_all"
+                    },
                     {
                         "targets": [ 0 ],
+                        "visible": false
+                    },
+                    {
+                        "targets": [ 4 ],
                         "visible": false
                     }
                 ],
                 "order": [[ 0, "desc" ]],
                 responsive: true,
-                "scrollX": true
+                "scrollX": true,
+                createdRow: function (row, data, index) {
+           
+                    if (data.estado == true) {
+                        $(row).css("background-color", "#5cb85c");
+                        $(row).val('asda')
+                    }else{
+
+                    }
+                }
             });
             
             var today = new Date();
@@ -152,6 +178,22 @@
                 $("#fecha_tope").val("");
 
             }) 
+
+            $('#table tbody').on( 'click', 'button', function () {
+  
+                var type = $(this).attr("class");
+                var data = table.row( $(this).parents('tr') ).data();
+
+             
+                $.ajax({
+                    url: "/todo/" + type + "/" + data.id,
+                    type: type == 'change' ? 'PUT': 'DELETE',
+                    success: function (result) {
+                        table.clear();
+                        table.rows.add( eval(result) ).draw();
+                    }
+                });
+            } );
         });
 
     </script>
