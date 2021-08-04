@@ -1,6 +1,6 @@
 <?php
 
-namespace AppBundle\Entity;
+namespace TodoBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Todo
  *
  * @ORM\Table(name="todo")
- * @ORM\Entity(repositoryClass="AppBundle\Repository\TodoRepository")
+ * @ORM\Entity(repositoryClass="TodoBundle\Repository\TodoRepository")
  */
 class Todo
 {
