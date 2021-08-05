@@ -48,7 +48,7 @@
         <div id="content">
         
             <button id="add" class="btn btn-success btn-lg" data-toggle="modal" data-target="#modalForm">Añadir tarea</button>
-            <form role="form" action="/todo/insert" method="POST">
+            <form id="formulario" role="form" action="/todo/insert" method="POST">
                 <div class="modal fade" id="modalForm" role="dialog">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -78,8 +78,8 @@
                             
 
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                                <button type="submit" class="btn btn-primary submitBtn">Añadir</button>
+                                <button id="close" type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                                <button id="add_task" class="btn btn-primary submitBtn">Añadir</button>
                             </div>
                         </div>
                     </div>
@@ -193,6 +193,23 @@
                         table.rows.add( eval(result) ).draw();
                     }
                 });
+            } );
+
+            $('#add_task').one( 'click', function () {
+ 
+                $.ajax({
+                    type: 'POST',
+                    url: "/todo/insert",
+                    data:  $("#formulario").serialize(),
+                    dataType: "text",
+                    success: function(resultData) {
+                  
+                        table.clear();
+                        table.rows.add( eval(resultData) ).draw();
+                        $('#close').click();
+                    }
+                });
+
             } );
         });
 

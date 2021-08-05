@@ -12,28 +12,24 @@ use TodoBundle\Entity\Todo;
 
 class DefaultController extends Controller
 {
+
+    /**
+     * @Route("/", name="welcome")
+     */
+    public function welcomeAction()
+    {
+        return $this->redirectToRoute('todo_list');
+    }
+
     /**
      * @Route("/list", name="todo_list")
      * @Method("GET")
      */
     public function listAction()
     {
-        $list = $this->getDoctrine()->getRepository('TodoBundle:Todo')->findAll();
-
-        foreach($list as $e)
-        {                   
-            $name = $e->getNombre();
-            $color = $e->getFechaCreacion()->format('d/m/Y');
-
-            $result[] = array("id" => $e->getId(), 
-                            "nombre" => $e->getNombre(), 
-                            "fecha_creacion" => $e->getFechaCreacion()->format('d/m/Y'), 
-                            "fecha_tope" => $e->getFechaTope()->format('d/m/Y'), 
-                            "estado" => $e->getEstado());
-        }
         // replace this example code with whatever you need
         return $this->render('@Todo/Default/index.html.twig', [
-            'result' => $result
+            'result' => $this->getList()
         ]);
        
     }
@@ -56,7 +52,7 @@ class DefaultController extends Controller
         $em->persist($new);
         $em->flush();
 
-        return $this->redirectToRoute('todo_list');
+        return new Response(json_encode(($this->getList())));
     }
 
     /**
@@ -65,27 +61,11 @@ class DefaultController extends Controller
      */
     public function changeAction($id) {
         $em = $this->getDoctrine()->getManager();
-
         $update = $this->getDoctrine()->getRepository('TodoBundle:Todo')->find($id);
         $update->setEstado(!$update->getEstado());
-
         $em->flush();
 
-        $list = $this->getDoctrine()->getRepository('TodoBundle:Todo')->findAll();
-        $result = array();
-        foreach($list as $e)
-        {                   
-            $name = $e->getNombre();
-            $color = $e->getFechaCreacion()->format('d/m/Y');
-
-            $result[] = array("id" => $e->getId(), 
-                            "nombre" => $e->getNombre(), 
-                            "fecha_creacion" => $e->getFechaCreacion()->format('d/m/Y'), 
-                            "fecha_tope" => $e->getFechaTope()->format('d/m/Y'), 
-                            "estado" => $e->getEstado());
-        }
- 
-        return new Response(json_encode($result));
+        return new Response(json_encode(($this->getList())));
     }
 
     /**
@@ -98,6 +78,12 @@ class DefaultController extends Controller
         $delete = $this->getDoctrine()->getRepository('TodoBundle:Todo')->find($id);
         $em->remove($delete);
         $em->flush();
+        
+        return new Response(json_encode($this->getList()));
+    }
+
+
+    private function getList() {
         $list = $this->getDoctrine()->getRepository('TodoBundle:Todo')->findAll();
         $result = array();
         foreach($list as $e)
@@ -111,8 +97,7 @@ class DefaultController extends Controller
                             "fecha_tope" => $e->getFechaTope()->format('d/m/Y'), 
                             "estado" => $e->getEstado());
         }
- 
-        return new Response(json_encode($result));
+        return $result;
     }
 
 }
